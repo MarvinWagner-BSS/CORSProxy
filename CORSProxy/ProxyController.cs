@@ -19,7 +19,8 @@ namespace CORSProxy
         [Route("{*args}")]
         public Task Index()
         {
-            return this.ProxyAsync(Configuration.GetValue<string>("ProxyHostAddress").TrimEnd('/') + '/' + Request.Path + Request.QueryString, proxyOptions);
+        	string uri = Configuration.GetValue<string>("ProxyHostAddress").TrimEnd('/') + Request.Path + Request.QueryString;
+        	return this.ProxyAsync(uri, proxyOptions);
         }
     }
 }
