@@ -28,12 +28,14 @@ namespace CORSProxy
                 .WithHttpClientName("ProxyClient")
                 .WithIntercept(context =>
                 {
+                	// Modify response to OPTIONS request
                     if (context.Request.Method == "OPTIONS")
                     {
                         context.Response.StatusCode = 204;
 
                         var headers = new List<string>
                         {
+                            "Access-Control-Allow-Credentials",
                             "Access-Control-Allow-Origin",
                             "Access-Control-Allow-Methods",
                             "Access-Control-Allow-Headers",
@@ -51,20 +53,24 @@ namespace CORSProxy
                     return Task.FromResult(false);
                 }).WithAfterReceive((context, response) =>
                 {
-                    const string header = "Access-Control-Allow-Origin";
-                    
-                    if (response.Headers.Contains(header))
+                    // Modify final response
+                    var headers = new List<string>
                     {
-                        response.Headers.Remove(header);
+                        "Access-Control-Allow-Credentials",
+                        "Access-Control-Allow-Origin"
+                    };
+
+                    foreach (var header in headers)
+                    {
+                        if (response.Headers.Contains(header))
+                            response.Headers.Remove(header);
+                        response.Headers.Add(header, Configuration.GetValue<string>(header));
                     }
-                    
-                    response.Headers.Add(header, Configuration.GetValue<string>(header));
 
                     return Task.CompletedTask;
                 });
 
             services.AddSingleton(options);
-
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
